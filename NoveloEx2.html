@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebGL Demo</title>
+  </head>
+  <body>
+    <canvas id="output" width="1300" height="1300"></canvas>
+    <!-- VERTEX SHADER -->
+    <script id="vertex-shader" type="notjs">#version 300 es
+      in vec4 a_position;
+      in float a_point_size;
+      void main() {
+      gl_Position = a_position;
+      gl_PointSize = a_point_size;
+      }
+    </script>
+    <!-- FRAGMENT SHADER -->
+    <script id="fragment-shader" type="notjs">#version 300 es
+      precision mediump float;
+      uniform vec4 u_color;
+      out vec4 outColor;
+      void main(void) {
+      //outColor = vec4(1, 0, 0, 1); //red
+      outColor = u_color;
+      }
+    </script>
+    <!-- Function for creating and compiling shader programs -->
+    <script>
+      function createShader(gl, type, sourceCode) {
+        // Compiles either a shader of type gl.VERTEX_SHADER or
+        gl.FRAGMENT_SHADER
+        var shader = gl.createShader(type);
+        gl.shaderSource(shader, sourceCode);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          var info = gl.getShaderInfoLog(shader);
+          throw 'Could not compile WebGL program. \n\n' + info;
+        }
+        return shader;
+      }
+    </script>
+    <!-- Main function contains:
+  1) declaration of WebGL context
+  2) function calls to initialize the shader programs
+  3) declaration and binding of buffer object
+  4) draw functions
+  -->
+    <script>
+      function main() {
+        const canvas = document.querySelector('#output');
+        if (!canvas) {
+          console.log("Canvas element with specified ID ('output') cannot be found.");
+        }
+        //const gl = initWebGL(canvas, true);
+        
+        //Setting up the WebGL Context
+        const gl = canvas.getContext('webgl2');
+        const vertexShaderSource = document.querySelector('#vertex-shader').text;
+        const fragmentShaderSource = document.querySelector('#fragment-shader').text;
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+        
+        //Creation and initialization of GL program
+        var program = gl.createProgram();
+        
+        // Attach pre-existing shaders
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          var info = gl.getProgramInfoLog(program);
+          throw 'Could not compile WebGL program. \n\n' + info;
+        }
+        
+        // set the program created earlier
+        gl.useProgram(program);
+        
+        // clear the screen before drawing anything
+        gl.clearColor(0.0, 0.0, 0.0, 1.0); // black - RGBA
+        gl.clear(gl.COLOR_BUFFER_BIT); //execute
+        
+        // Declaration of pointers to the attributes
+        const aPositionPointer = gl.getAttribLocation(program, 'a_position');
+        const aPointSizePointer = gl.getAttribLocation(program, 'a_point_size');
+        var colorLocation = gl.getUniformLocation(program, "u_color");
+
+        var pokemonVertices = [
+          // right hair [0-17]
+          0.073, 0.0, 0.0, 1.0,
+          -0.06, 0.009, 0.0, 1.0,
+          -0.1856, 0.025, 0.0, 1.0,
+          -0.223, 0.172, 0.0, 1.0,
+          -0.218, 0.345, 0.0, 1.0,
+          -0.19, 0.47, 0.0, 1.0,
+          -0.142, 0.593, 0.0, 1.0,
+          -0.062, 0.689, 0.0, 1.0,
+          -0.084, 0.729, 0.0, 1.0,
+          0.032, 0.727, 0.0, 1.0,
+          0.158, 0.692, 0.0, 1.0,
+          0.253, 0.628, 0.0, 1.0,
+          0.343, 0.54, 0.0, 1.0,
+          0.408, 0.4, 0.0, 1.0,
+          0.454, 0.239, 0.0, 1.0,
+          0.452, 0.081, 0.0, 1.0,
+          0.245, 0.015, 0.0, 1.0,
+          0.073, 0.0, 0.0, 1.0,
+
+          // left hair [18-29]
+          -0.228, 0.24, 0.0, 1.0,
+          -0.338, 0.399, 0.0, 1.0,
+          -0.39, 0.5, 0.0, 1.0,
+          -0.414, 0.577, 0.0, 1.0,
+          -0.505, 0.429, 0.0, 1.0,
+          -0.54, 0.285, 0.0, 1.0,
+          -0.532, 0.113, 0.0, 1.0,
+          -0.419, 0.061, 0.0, 1.0,
+          -0.35, 0.039, 0.0, 1.0,
+          -0.242, 0.031, 0.0, 1.0,
+          -0.223, 0.172, 0.0, 1.0,
+          -0.228, 0.24, 0.0, 1.0,
+
+          // body [30-55]
+          0.245, 0.015, 0.0, 1.0,
+          0.12, -0.106, 0.0, 1.0,
+          -0.024, -0.15, 0.0, 1.0,
+          0.008, -0.274, 0.0, 1.0,
+          0.034, -0.407, 0.0, 1.0,
+          0.14, -0.556, 0.0, 1.0,
+          0.249, -0.68, 0.0, 1.0,
+          0.318, -0.663, 0.0, 1.0,
+          0.384, -0.692, 0.0, 1.0,
+          0.45, -0.65, 0.0, 1.0,
+          0.453, -0.685, 0.0, 1.0,
+          0.54, -0.664, 0.0, 1.0,
+          0.461, -0.796, 0.0, 1.0,
+          0.477, -0.828, 0.0, 1.0,
+          0.32, -0.846, 0.0, 1.0,
+          0.201, -0.869, 0.0, 1.0,
+          0, -0.9, 0.0, 1.0,
+          -0.206, -0.876, 0.0, 1.0,
+          -0.452, -0.812, 0.0, 1.0,
+          -0.361, -0.631, 0.0, 1.0,
+          -0.226, -0.45, 0.0, 1.0,
+          -0.142, -0.257, 0.0, 1.0,
+          -0.091, -0.114, 0.0, 1.0,
+          -0.191, -0.133, 0.0, 1.0,
+          -0.327, -0.05, 0.0, 1.0,
+          -0.389, 0.047, 0.0, 1.0,
+
+          // left hand [56-60]
+          -0.191, -0.133, 0.0, 1.0,
+          -0.321, -0.228, 0.0, 1.0,
+          -0.394, -0.382, 0.0, 1.0,
+          -0.251, -0.3446, 0.0, 1.0,
+          -0.142, -0.257, 0.0, 1.0,
+
+          // big ear [61-67]
+          -0.084, 0.729, 0.0, 1.0,
+          -0.16, 0.79, 0.0, 1.0,
+          -0.264, 0.861, 0.0, 1.0,
+          -0.414, 0.892, 0.0, 1.0,
+          -0.46, 0.782, 0.0, 1.0,
+          -0.438, 0.65, 0.0, 1.0,
+          -0.414, 0.577, 0.0, 1.0,
+
+          // small ear [68-72]
+          0.032, 0.727, 0.0, 1.0,
+          0.111, 0.788, 0.0, 1.0,
+          0.215, 0.823, 0.0, 1.0,
+          0.26, 0.735, 0.0, 1.0,
+          0.253, 0.628, 0.0, 1.0,
+
+          // left hair lines [73-77]
+          -0.414, 0.577, 0.0, 1.0,
+          -0.456, 0.424, 0.0, 1.0,
+          -0.463, 0.296, 0.0, 1.0,
+          -0.448, 0.17, 0.0, 1.0,
+          -0.419, 0.061, 0.0, 1.0,
+
+          // right hair lines [78-83]
+          0.343, 0.54, 0.0, 1.0,
+          0.243, 0.478, 0.0, 1.0,
+          0.17, 0.367, 0.0, 1.0,
+          0.115, 0.249, 0.0, 1.0,
+          0.076, 0.118, 0.0, 1.0,
+          0.073, 0.0, 0.0, 1.0,
+
+          // right hand [84-88]
+          0.034, -0.407, 0.0, 1.0,
+          0.017, -0.551, 0.0, 1.0,
+          -0.075, -0.671, 0.0, 1.0,
+          -0.097, -0.528, 0.0, 1.0,
+          -0.053, -0.242, 0.0, 1.0,
+
+          // dress detail [89-90]
+          -0.206, -0.876, 0.0, 1.0,
+          -0.179, -0.58, 0.0, 1.0,
+
+          // R [91-96]
+          -0.17, -0.99, 0.0, 1.0,
+          -0.17, -0.96, 0.0, 1.0,
+          -0.17, -0.93, 0.0, 1.0,
+          -0.13, -0.945, 0.0, 1.0,
+          -0.17, -0.96, 0.0, 1.0,
+          -0.13, -0.99, 0.0, 1.0,
+
+          // A [97-103]
+          -0.12, -0.99, 0.0, 1.0,
+          -0.11, -0.96, 0.0, 1.0,
+          -0.09, -0.93, 0.0, 1.0,
+          -0.07, -0.96, 0.0, 1.0,
+          -0.06, -0.99, 0.0, 1.0,
+          -0.07, -0.96, 0.0, 1.0,
+          -0.11, -0.96, 0.0, 1.0,
+
+          // L [104-106]
+          -0.05, -0.93, 0.0, 1.0,
+          -0.05, -0.99, 0.0, 1.0,
+          0, -0.99, 0.0, 1.0,
+
+          // T [107-110]
+          0.05, -0.99, 0.0, 1.0,
+          0.05, -0.93, 0.0, 1.0,
+          0.1, -0.93, 0.0, 1.0,
+          0, -0.93, 0.0, 1.0,
+
+          // S [111-114]
+          0.17, -0.93, 0.0, 1.0,
+          0.12, -0.95, 0.0, 1.0,
+          0.17, -0.97, 0.0, 1.0,
+          0.12, -0.99, 0.0, 1.0,
+        ];
+        
+        //Buffer object to be accessed by gl.ARRAY_BUFFER
+        //create a buffer object
+        var shapeBuffer = gl.createBuffer();
+        
+        //Bind buffer object to a target
+        gl.bindBuffer(gl.ARRAY_BUFFER, shapeBuffer);
+        
+        //Write data into the buffer object
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pokemonVertices), gl.STATIC_DRAW);
+        
+        //Assign the buffer object to an attribute variable
+        gl.vertexAttribPointer(aPositionPointer, 4, gl.FLOAT, false, 0, 0);
+        
+        //Enable assignment
+        gl.enableVertexAttribArray(aPositionPointer);
+        
+        // draw buffer that is bound to gl.ARRAY_BUFFER
+        // draw the lines
+        gl.drawArrays(gl.LINE_STRIP, 0, 18); // right hair
+        gl.drawArrays(gl.LINE_STRIP, 18, 12); // left hair
+        gl.drawArrays(gl.LINE_STRIP, 30, 26); // body
+        gl.drawArrays(gl.LINE_STRIP, 56, 5); // left hand
+        gl.drawArrays(gl.LINE_STRIP, 61, 7); // big ear
+        gl.drawArrays(gl.LINE_STRIP, 68, 5); // small ear 
+        gl.drawArrays(gl.LINE_STRIP, 73, 5); // left hair lines
+        gl.drawArrays(gl.LINE_STRIP, 78, 6); // right hair lines
+        gl.drawArrays(gl.LINE_STRIP, 84, 5); // right hand
+        gl.drawArrays(gl.LINE_STRIP, 89, 2); // dress detail
+        gl.drawArrays(gl.LINE_STRIP, 91, 6); // R
+        gl.drawArrays(gl.LINE_STRIP, 97, 7); // A
+        gl.drawArrays(gl.LINE_STRIP, 104, 3); // L
+        gl.drawArrays(gl.LINE_STRIP, 107, 4); // T
+        gl.drawArrays(gl.LINE_STRIP, 111, 4); // S
+
+        // draw varying point size and color
+        for (let i = 0; i < pokemonVertices.length; i++) {
+          // randomize the color
+          var r = Math.random();
+          var g = Math.random();
+          var b = Math.random();
+          gl.uniform4f(colorLocation, r, g, b, 1.0);
+
+          // randomize the point size
+          var pointSize = Math.random() * 10 + 5;
+          gl.vertexAttrib1f(aPointSizePointer, pointSize);
+          gl.drawArrays(gl.POINTS, i, 1);
+        }
+
+        //unbind the buffer
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+      }
+      // call the main program
+      main();
+    </script>
+  </body>
+</html>
